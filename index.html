@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Fichier Téléchargé</title>
+</head>
+<body>
+  <!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Éditeur HTML - Mode Sombre</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    #editor, #previewContainer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      transition: background 0.3s;
+    }
+
+    textarea {
+      flex: 1;
+      font-family: monospace;
+      font-size: 15px;
+      padding: 15px;
+      border-radius: 10px;
+      resize: none;
+      outline: none;
+      margin-bottom: 15px;
+      border: 1px solid transparent;
+      transition: background 0.3s, color 0.3s, border 0.3s;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      transition: background 0.3s;
+    }
+
+    /* ---- Thèmes ---- */
+    body.light {
+      background: linear-gradient(135deg, #4ea8de, #7c3aed);
+      color: white;
+    }
+
+    body.light #editor,
+    body.light #previewContainer {
+      background: transparent;
+    }
+
+    body.light textarea {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    body.light button {
+      background: linear-gradient(135deg, #4ea8de, #7c3aed);
+      color: white;
+    }
+
+    body.light iframe {
+      background: white;
+    }
+
+    body.dark {
+      background: #121212;
+      color: #e0e0e0;
+    }
+
+    body.dark #editor,
+    body.dark #previewContainer {
+      background: #1e1e1e;
+    }
+
+    body.dark textarea {
+      background-color: #2d2d2d;
+      color: #e0e0e0;
+      border: 1px solid #444;
+    }
+
+    body.dark button {
+      background: linear-gradient(135deg, #333, #555);
+      color: #fff;
+    }
+
+    body.dark iframe {
+      background: #fff;
+    }
+
+    #themeToggle {
+      flex: 1;
+      background: orange;
+      color: black;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      #editor, #previewContainer {
+        width: 100%;
+        height: 50%;
+      }
+    }
+  </style>
+</head>
+<body class="light">
+
+  <div id="editor">
+    <textarea id="htmlInput"></textarea>
+
+    <div class="btn-group">
+      <button onclick="runCode()">▶ Exécuter</button>
+      <button onclick="downloadCode()">⬇ Télécharger</button>
+      <button onclick="importFile()">⬆ Importer</button>
+      <button onclick="copyCode()">📋 Copier</button>
+      <button id="themeToggle" onclick="toggleTheme()">🌙 Mode sombre</button>
+      <input type="file" id="fileInput" accept=".html" style="display:none" />
+    </div>
+  </div>
+
+  <div id="previewContainer">
+    <iframe id="preview"></iframe>
+  </div>
+
+  <script>
+    function runCode() {
+      const html = document.getElementById("htmlInput").value;
+
+      const fullHtml = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Prévisualisation</title></head>
+<body>${html}</body></html>`;
+
+      const previewFrame = document.getElementById("preview");
+      previewFrame.srcdoc = fullHtml;
+    }
+
+    function downloadCode() {
+      const html = document.getElementById("htmlInput").value;
+
+      const fullHtml = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Fichier Téléchargé</title></head>
+<body>${html}</body></html>`;
+
+      const blob = new Blob([fullHtml], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mon_fichier.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function importFile() {
+      const fileInput = document.getElementById('fileInput');
+      fileInput.value = null;
+      fileInput.click();
+      fileInput.onchange = () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById('htmlInput').value = e.target.result;
+          runCode();
+        };
+        reader.readAsText(file);
+      };
+    }
+
+    function copyCode() {
+      const textarea = document.getElementById('htmlInput');
+      textarea.select();
+      textarea.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      alert("Code copié dans le presse-papiers !");
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const toggleBtn = document.getElementById('themeToggle');
+      body.classList.toggle('dark');
+      body.classList.toggle('light');
+
+      if (body.classList.contains('dark')) {
+        toggleBtn.textContent = '☀️ Mode clair';
+      } else {
+        toggleBtn.textContent = '🌙 Mode sombre';
+      }
+    }
+
+    window.onload = runCode;
+  </script>
+
+</body>
+</html>
+
+</body>
+</html>
